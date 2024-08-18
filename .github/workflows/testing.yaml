@@ -1,0 +1,99 @@
+---
+name: PHPUnit
+
+on:
+  workflow_call:
+    inputs:
+      php_version:
+        description: PHP version with which the scripts are executed
+        default: "8.3"
+        required: false
+        type: string
+      extensions:
+        description: Setup php extension to use
+        default: intl, bcmath, curl, openssl, mbstring, pdo_pgsql
+        type: string
+        required: false
+      pre_run:
+        description: Pre run script
+        default: "./vendor/bin/phpunit --version"
+        type: string
+        required: false
+      phpunit_coverage:
+        description: Runs phpunit with coverage
+        default: true
+        type: boolean
+        required: false
+      codecov:
+        description: Upload coverage to codecov
+        default: false
+        type: boolean
+        required: false
+
+jobs:
+  phpunit:
+    name: PHPUnit (PHP ${{ inputs.php_version }})
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup workflow variables
+        id: vars
+        shell: bash
+        env:
+          COVERAGE: "${{ inputs.phpunit_coverage }}"
+        run: |
+          phpunit_cmd="./vendor/bin/phpunit --colors"
+          if [[ ${COVERAGE} ]]; then
+            phpunit_cmd="${phpunit_cmd} --coverage-clover build/logs/phpunit/clover.xml --log-junit build/logs/phpunit/junit.xml"
+          fi
+          echo "phpunit_cmd=${phpunit_cmd}" >> $GITHUB_OUTPUT
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ inputs.php_version }}
+          extensions: ${{ inputs.extensions }}
+          ini-values: memory_limit=-1
+          coverage: pcov
+
+      - name: Get composer cache directory
+        id: composercache
+        run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
+
+      - name: Cache dependencies
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.composercache.outputs.dir }}
+          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.json') }}
+          restore-keys: ${{ runner.os }}-composer-
+
+      - name: Update project dependencies
+        run: |
+          composer install --no-interaction --no-progress --ansi
+
+      - name: Runs pre run scripts
+        run: ${{ inputs.pre_run }}
+
+      - name: Runs phpunit tests
+        run: ${{ steps.vars.outputs.phpunit_cmd }}
+
+      - name: Upload test artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phpunit-logs-php${{ inputs.php_version }}
+          path: build/logs/phpunit
+        continue-on-error: true
+
+      - name: Upload coverage results to Codecov
+        if: inputs.phpunit_coverage && inputs.codecov
+        uses: codecov/codecov-action@v4
+        with:
+          name: phpunit-php${{ inputs.php_version }}
+          flags: phpunit
+          fail_ci_if_error: false
+          token: ${{ secrets.CODECOV_TOKEN }}
+          directory: build/logs/phpunit
+        continue-on-error: true
