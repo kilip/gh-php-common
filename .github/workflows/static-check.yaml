@@ -36,6 +36,7 @@ on:
 jobs:
   commitlint:
     if: github.event_name == 'pull_request' && inputs.commitlint
+    name: Commit Lint
     env:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     runs-on: ubuntu-latest
