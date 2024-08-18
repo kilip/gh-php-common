@@ -17,10 +17,25 @@ on:
         default: false
         type: boolean
         required: false
+      phpcsfixer:
+        description: Runs phpcsfixer check
+        default: false
+        type: boolean
+        required: false
+      phpstan:
+        description: Runs phpstan check
+        default: false
+        type: boolean
+        required: false
+      psalm:
+        description: Runs psalm check
+        default: false
+        type: boolean
+        required: false
 
 jobs:
   commitlint:
-    if: github.event_name == 'pull_request'
+    if: github.event_name == 'pull_request' and ${{ inputs.commitlint }}
     env:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     runs-on: ubuntu-latest
@@ -41,6 +56,7 @@ jobs:
 
   php-cs-fixer:
     name: PHP CS Fixer (PHP ${{ inputs.php_version }})
+    if: ${{ inputs.phpcsfixer }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -57,6 +73,7 @@ jobs:
         run: php-cs-fixer fix --dry-run --diff --ansi
 
   phpstan:
+    if: ${{ inputs.phpstan }}
     name: PHPStan (PHP ${{ inputs.php_version }})
     runs-on: ubuntu-latest
     steps:
@@ -101,3 +118,40 @@ jobs:
         run: |
           ./vendor/bin/phpstan --version
           ./vendor/bin/phpstan analyse --no-interaction --no-progress --ansi
+
+  psalm:
+    if: ${{ inputs.psalm }}
+    name: Psalm (PHP ${{ inputs.php_version }})
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ inputs.php_version }}
+          ini-values: "memory_limit=-1"
+          coverage: none
+
+      - name: Checkout target branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.base_ref }}
+
+      - name: Get composer cache directory
+        id: composercache
+        run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
+
+      - name: Cache dependencies
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.composercache.outputs.dir }}
+          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.json') }}
+          restore-keys: ${{ runner.os }}-composer-
+
+      - name: Update project dependencies
+        run: |
+          composer update --no-interaction --no-progress --ansi
+          composer require --no-progress --ansi --no-plugins psalm/phar:@stable
+
+      - name: Psalm
+        run: |
+          ./vendor/bin/psalm.phar --no-progress || ./vendor/bin/psalm.phar --output-format=github --no-progress
