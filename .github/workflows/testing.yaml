@@ -43,7 +43,7 @@ jobs:
         run: |
           phpunit_cmd="./vendor/bin/phpunit --colors"
           if [[ ${COVERAGE} ]]; then
-            phpunit_cmd="${phpunit_cmd} --log-junit junit.xml"
+            phpunit_cmd="${phpunit_cmd} --coverage-clover clover.xml"
           fi
           echo "phpunit_cmd=${phpunit_cmd}" >> $GITHUB_OUTPUT
 
@@ -84,7 +84,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: phpunit-logs-php${{ inputs.php_version }}
-          path: junit.xml
+          path: clover.xml
         continue-on-error: true
 
       - name: Upload coverage results to Codecov
@@ -94,6 +94,6 @@ jobs:
           name: phpunit-php${{ inputs.php_version }}
           flags: phpunit
           fail_ci_if_error: false
-          files: junit.xml
+          files: clover.xml
           token: ${{ secrets.CODECOV_TOKEN }}
         continue-on-error: true
