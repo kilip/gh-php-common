@@ -7,7 +7,7 @@ on:
       working_dir:
         type: string
         required: false
-        default: ${{ github.workspace }}
+        default: "${{ github.workspace }}"
       php_version:
         description: PHP version with which the scripts are executed
         default: "8.3"
