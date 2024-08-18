@@ -43,7 +43,7 @@ jobs:
         run: |
           phpunit_cmd="./vendor/bin/phpunit --colors"
           if [[ ${COVERAGE} ]]; then
-            phpunit_cmd="${phpunit_cmd} --log-junit build/logs/phpunit/junit.xml"
+            phpunit_cmd="${phpunit_cmd} --log-junit junit.xml"
           fi
           echo "phpunit_cmd=${phpunit_cmd}" >> $GITHUB_OUTPUT
 
@@ -76,10 +76,6 @@ jobs:
       - name: Runs pre run scripts
         run: ${{ inputs.pre_run }}
 
-      - name: Create phpunit log dir
-        if: ${{ inputs.phpunit_coverage }}
-        run: mkdir -p build/logs/phpunit
-
       - name: Runs phpunit tests
         run: ${{ steps.vars.outputs.phpunit_cmd }}
 
@@ -88,7 +84,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: phpunit-logs-php${{ inputs.php_version }}
-          path: build/logs/phpunit
+          path: junit.xml
         continue-on-error: true
 
       - name: Upload coverage results to Codecov
@@ -99,5 +95,4 @@ jobs:
           flags: phpunit
           fail_ci_if_error: false
           token: ${{ secrets.CODECOV_TOKEN }}
-          directory: build/logs/phpunit
         continue-on-error: true
