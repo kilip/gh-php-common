@@ -19,12 +19,29 @@ on:
         default: "./vendor/bin/phpunit --version"
         type: string
         required: false
+      phpunit_coverage:
+        description: Runs phpunit with coverage
+        default: true
+        type: boolean
+        required: false
 
 jobs:
   phpunit:
     name: PHPUnit (PHP ${{ inputs.php_version }})
     runs-on: ubuntu-latest
     steps:
+      - name: Setup workflow variables
+        id: vars
+        shell: bash
+        env:
+          COVERAGE: "${{ inputs.phpunit_coverage }}"
+        run: |
+          phpunit_cmd="./vendor/bin/phpunit --colors"
+          if [[ ${COVERAGE} ]]; then
+            phpunit_cmd="${phpunit_cmd} --log-junit build/logs/junit.xml"
+          fi
+          echo "phpunit_cmd=${phpunit_cmd}" >> $GITHUB_OUTPUT
+
       - name: Checkout
         uses: actions/checkout@v4
 
@@ -54,5 +71,9 @@ jobs:
       - name: Runs pre run scripts
         run: ${{ inputs.pre_run }}
 
+      - name: Create phpunit log dir
+        if: ${{ inputs.phpunit_coverage }}
+        run: mkdir -p build/logs
+
       - name: Runs phpunit tests
-        run: ./vendor/bin/phpunit --colors
+        run: ${{ steps.vars.outputs.phpunit_cmd }}
