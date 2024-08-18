@@ -18,9 +18,6 @@ jobs:
   php-cs-fixer:
     name: PHP CS Fixer (PHP ${{ inputs.php_version }})
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ${{ inputs.working_dir }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -38,9 +35,6 @@ jobs:
   phpstan:
     name: PHPStan (PHP ${{ inputs.php_version }})
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ${{ inputs.working_dir }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
