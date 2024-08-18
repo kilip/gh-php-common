@@ -24,6 +24,11 @@ on:
         default: true
         type: boolean
         required: false
+      codecov:
+        description: Upload coverage to codecov
+        default: false
+        type: boolean
+        required: false
 
 jobs:
   phpunit:
@@ -38,7 +43,7 @@ jobs:
         run: |
           phpunit_cmd="./vendor/bin/phpunit --colors"
           if [[ ${COVERAGE} ]]; then
-            phpunit_cmd="${phpunit_cmd} --log-junit build/logs/junit.xml"
+            phpunit_cmd="${phpunit_cmd} --log-junit build/logs/phpunit/junit.xml"
           fi
           echo "phpunit_cmd=${phpunit_cmd}" >> $GITHUB_OUTPUT
 
@@ -73,7 +78,25 @@ jobs:
 
       - name: Create phpunit log dir
         if: ${{ inputs.phpunit_coverage }}
-        run: mkdir -p build/logs
+        run: mkdir -p build/logs/phpunit
 
       - name: Runs phpunit tests
         run: ${{ steps.vars.outputs.phpunit_cmd }}
+
+      - name: Upload test artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phpunit-logs-php${{ matrix.php }}
+          path: build/logs/phpunit
+        continue-on-error: true
+
+      - name: Upload coverage results to Codecov
+        if: inputs.phpunit_coverage && inputs.codecov
+        uses: codecov/codecov-action@v4
+        with:
+          name: phpunit-php${{ inputs.php_version }}
+          flags: phpunit
+          fail_ci_if_error: false
+          token: ${{ secrets.CODECOV_TOKEN }}
+        continue-on-error: true
