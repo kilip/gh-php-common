@@ -43,7 +43,7 @@ jobs:
         run: |
           phpunit_cmd="./vendor/bin/phpunit --colors"
           if [[ ${COVERAGE} ]]; then
-            phpunit_cmd="${phpunit_cmd} --coverage-clover clover.xml"
+            phpunit_cmd="${phpunit_cmd} --coverage-clover build/logs/phpunit/clover.xml --log-junit build/logs/phpunit/junit.xml
           fi
           echo "phpunit_cmd=${phpunit_cmd}" >> $GITHUB_OUTPUT
 
