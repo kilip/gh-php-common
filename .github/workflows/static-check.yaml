@@ -7,14 +7,38 @@ on:
       working_dir:
         type: string
         required: false
-        default: "${{ github.workspace }}"
       php_version:
         description: PHP version with which the scripts are executed
         default: "8.3"
         required: false
         type: string
+      commitlint:
+        description: Runs commit lint check on pull request
+        default: false
+        type: boolean
+        required: false
 
 jobs:
+  commitlint:
+    if: github.event_name == 'pull_request'
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Run commitlint
+        run: |
+          commit=$(gh api \
+            /repos/${{ github.repository }}/pulls/${{github.event.number}}/commits \
+            | jq -r '.[0].commit.message' \
+            | head -n 1)
+          # we can't use npx see https://github.com/conventional-changelog/commitlint/issues/613
+          echo '{}' > package.json
+          npm install --no-fund --no-audit @commitlint/config-conventional @commitlint/cli
+          echo $commit | ./node_modules/.bin/commitlint -g .commitlintrc
+
   php-cs-fixer:
     name: PHP CS Fixer (PHP ${{ inputs.php_version }})
     runs-on: ubuntu-latest
