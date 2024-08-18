@@ -71,7 +71,7 @@ jobs:
 
       - name: Update project dependencies
         run: |
-          composer update --no-interaction --no-progress --ansi
+          composer install --no-interaction --no-progress --ansi
 
       - name: Runs pre run scripts
         run: ${{ inputs.pre_run }}
@@ -89,7 +89,7 @@ jobs:
 
       - name: Upload coverage results to Codecov
         if: inputs.phpunit_coverage && inputs.codecov
-        uses: codecov/codecov-action@v4
+        uses: codecov/test-results-action@v1
         with:
           name: phpunit-php${{ inputs.php_version }}
           flags: phpunit
