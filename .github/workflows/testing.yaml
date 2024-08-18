@@ -87,7 +87,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: phpunit-logs-php${{ matrix.php }}
+          name: phpunit-logs-php${{ inputs.php_version }}
           path: build/logs/phpunit
         continue-on-error: true
 
@@ -99,4 +99,5 @@ jobs:
           flags: phpunit
           fail_ci_if_error: false
           token: ${{ secrets.CODECOV_TOKEN }}
+          directory: build/logs/phpunit
         continue-on-error: true
