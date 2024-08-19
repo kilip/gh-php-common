@@ -117,10 +117,7 @@ jobs:
           labels: |
             maintainer=${{ inputs.author }}
             org.opencontainers.image.author=${{ inputs.author }}
-            org.opencontainers.image.description=${{ inputs.description }}
             org.opencontainers.image.version=${{ steps.vars.outputs.tag_version }}
-          annotations: |
-            org.opencontainers.image.description=${{ inputs.description }}
 
       - name: Build and push container image
         if: github.event_name != 'pull_request'
