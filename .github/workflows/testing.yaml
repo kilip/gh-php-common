@@ -94,7 +94,9 @@ jobs:
       - name: Create postgres database schema
         env:
           DATABASE_URL: postgresql://app:app@localhost/app
-        run: ./bin/console doctrine:schema:create --env=test
+        run: |
+          ./bin/console doctrine:database:create --env=test
+          ./bin/console doctrine:schema:create --env=test
 
       - name: Runs pre run scripts
         run: ${{ inputs.pre_run }}
