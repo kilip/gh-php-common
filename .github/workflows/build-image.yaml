@@ -26,7 +26,7 @@ on:
         required: false
       goss_file:
         description: goss.yaml file location
-        default: ./docker/goss.yaml
+        default: ./frankenphp/goss.yaml
         type: string
         required: false
 
@@ -73,6 +73,12 @@ jobs:
         id: buildx
         uses: docker/setup-buildx-action@v3
 
+      - name: Setup Goss
+        if: ${{ inputs.goss }}
+        uses: e1himself/goss-installation-action@v1
+        with:
+          version: latest
+
       - name: Build container testing image
         if: inputs.goss
         uses: docker/build-push-action@v6
@@ -92,12 +98,12 @@ jobs:
         if: inputs.goss
         env:
           CONTAINER_RUNTIME: docker
-          GOSS_FILE:
+          GOSS_FILE: ${{ inputs.goss_file }}
           GOSS_OPTS: --retry-timeout 60s --sleep 2s --color --format documentation
           GOSS_SLEEP: 2
           GOSS_FILES_STRATEGY: cp
           CONTAINER_LOG_OUTPUT: goss_container_log_output
-        run: dgoss run ${{ env.IMAGE_PREFIX }}:testingz ${{ steps.vars.outputs.goss_args }}
+        run: dgoss run ${{ env.IMAGE_PREFIX }}:testingz
 
       - name: Build and push container image
         if: github.event_name != 'pull_request'
@@ -108,6 +114,8 @@ jobs:
           platforms: linux/amd64,linux/arm64
           tags: ${{ steps.vars.outputs.tags }}
           push: true
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
           labels: |-
             org.opencontainers.image.created="${{ steps.vars.outputs.build_date }}"
             org.opencontainers.image.description="${{ inputs.description }}"
