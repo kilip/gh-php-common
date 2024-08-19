@@ -47,7 +47,7 @@ jobs:
         run: |
           date_version=$(date +'%Y%m%d%H%M%S')
           tag_version="${{ github.ref_name }}-${date_version}"
-          tags="${tag_version}"
+          tags="${{ env.IMAGE_PREFIX }}:${tag_version}"
 
           ref="${{ github.ref_name }}"
           if [[ $ref == v* ]]; then
