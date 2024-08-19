@@ -1,4 +1,5 @@
 ---
+# yaml-language-server: $schema=https://json.schemastore.org/github-workflow.json
 name: "Release"
 
 on:
@@ -15,59 +16,19 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup workflow variables
-        shell: bash
-        id: vars
-        env:
-          GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
-        run: |
-          # Retrieve previous release tag
-          previous_tag="$(gh release list --limit 1 | awk '{ print $1 }')"
-          previous_major="${previous_tag%%\.*}"
-          previous_minor="${previous_tag#*.}"
-          previous_minor="${previous_minor%.*}"
-          previous_patch="${previous_tag##*.}"
-          # Determine next release tag
-          next_major_minor="$(date +'%Y').$(date +'%-m')"
-          if [[ "${previous_major}.${previous_minor}" == "${next_major_minor}" ]]; then
-              echo "Month release already exists for year, incrementing patch number by 1"
-              next_patch="$((previous_patch + 1))"
-          else
-              echo "Month release does not exist for year, setting patch number to 0"
-              next_patch="0"
-          fi
-
-          # Create release
-          release_tag="${next_major_minor}.${next_patch}"
-          echo "release_tag=${release_tag}" >> $GITHUB_OUTPUT
-          echo "previous_tag=${previous_tag}" >> $GITHUB_OUTPUT
-
-      - name: Create Release
-        shell: bash
-        env:
-          GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
-          RELEASE_TAG: "${{ steps.vars.outputs.release_tag }}"
-        run: |
-          gh release create "${RELEASE_TAG}" \
-            --repo="${GITHUB_REPOSITORY}" \
-            --title="${RELEASE_TAG}"
-
-      - name: Create changelog
+      - name: Update CHANGELOG
         id: changelog
         uses: requarks/changelog-action@v1
         with:
           token: ${{ github.token }}
-          toTag: ${{ steps.vars.outputs.previous_tag }}
-          fromTag: ${{ steps.vars.outputs.release_tag }}
+          tag: ${{ github.ref_name }}
 
-      - name: Update release changelog
-        env:
-          GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
-          RELEASE_TAG: "${{ steps.vars.outputs.release_tag }}"
-        run: |
-          gh release edit \
-            --repo="${GITHUB_REPOSITORY}" \
-            ${RELEASE_TAG} \
-            --notes-file CHANGELOG.md
-
-  build:
+      - name: Create Release
+        uses: ncipollo/release-action@v1.14.0
+        with:
+          allowUpdates: true
+          draft: false
+          makeLatest: true
+          name: ${{ github.ref_name }}
+          body: ${{ steps.changelog.outputs.changes }}
+          token: ${{ github.token }}
