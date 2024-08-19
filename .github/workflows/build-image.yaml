@@ -118,6 +118,9 @@ jobs:
             maintainer=${{ inputs.author }}
             org.opencontainers.image.author=${{ inputs.author }}
             org.opencontainers.image.version=${{ steps.vars.outputs.tag_version }}
+          annotations: |
+            org.opencontainers.image.author=${{ inputs.author }}
+            org.opencontainers.image.version=${{ steps.vars.outputs.tag_version }}
 
       - name: Build and push container image
         if: github.event_name != 'pull_request'
@@ -131,3 +134,4 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
           labels: ${{ steps.meta.outputs.labels }}
+          annotations: ${{ steps.meta.outputs.annotations }}
