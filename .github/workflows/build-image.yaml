@@ -55,7 +55,7 @@ jobs:
             tags="${{ env.IMAGE_PREFIX }}:${{ github.ref_name }},${{env.IMAGE_PREFIX}}:latest"
           fi
 
-          echo "tags=${docker_version}" >> $GITHUB_OUTPUT
+          echo "tags=${tags}" >> $GITHUB_OUTPUT
           echo "tag_version=${tag_version}" >> $GITHUB_OUTPUT
           echo "build_date=$(date --rfc-3339=seconds --utc)" >> $GITHUB_OUTPUT
 
