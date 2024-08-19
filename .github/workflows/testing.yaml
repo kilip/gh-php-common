@@ -36,7 +36,7 @@ on:
         required: false
       database_url:
         description: Setup database url
-        default: postgresql://crank:crank@localhost/crank
+        default: postgresql://app:app@localhost/app
         type: string
         required: false
 
@@ -86,14 +86,14 @@ jobs:
       - uses: ikalnytskyi/action-setup-postgres@v6
         with:
           username: app
-          password: sw0rdfish
+          password: app
           database: app_test
           port: 5432
         id: postgres
 
       - name: Create postgres database schema
         env:
-          DATABASE_URL: postgresql://app:sw0rdfish@localhost/app
+          DATABASE_URL: postgresql://app:app@localhost/app
         run: ./bin/console doctrine:schema:create --env=test
 
       - name: Runs pre run scripts
