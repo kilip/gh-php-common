@@ -12,7 +12,7 @@ jobs:
       contents: write
       packages: write
     outputs:
-      release_tag: ${{ steps.vars.outputs.release_tag1 }}
+      release_tag: ${{ steps.vars.outputs.release_tag }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
