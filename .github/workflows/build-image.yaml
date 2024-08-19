@@ -109,16 +109,9 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          labels: |
-            org.opencontainers.image.created="${{ steps.vars.outputs.build_date }}"
+          labels:
             org.opencontainers.image.description="${{ inputs.description }}"
-            org.opencontainers.image.title="${{ github.repository }} (stable)"
             org.opencontainers.image.version="${{ steps.vars.outputs.tag_version }}"
-            org.opencontainers.image.authors="${{ inputs.author }}"
-            org.opencontainers.image.url="https://github.com/${{ github.repository }}"
-            org.opencontainers.image.build.url="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-            org.opencontainers.image.documentation="https://github.com/${{ github.repository }}/README.md"
-            org.opencontainers.image.revision="${{ github.sha }}"
 
       - name: Build and push container image
         if: github.event_name != 'pull_request'
