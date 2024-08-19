@@ -55,7 +55,7 @@ jobs:
           tags="${{ env.IMAGE_PREFIX }}:${tag_version}"
 
           ref="${{ github.ref_name }}"
-          if [[ $ref == v* ]]; then
+          if [[ $ref == 2024* ]]; then
             tag_version="${{ github.ref_name }}"
             tags="${{ env.IMAGE_PREFIX }}:${{ github.ref_name }},${{env.IMAGE_PREFIX}}:latest"
           fi
