@@ -40,7 +40,7 @@ env:
 
 jobs:
   build:
-    name: ${{ inputs.name }}
+    name: Build ghcr.io/${{ github.repository  }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -131,7 +131,7 @@ jobs:
           platforms: linux/amd64,linux/arm64
           tags: ${{ steps.vars.outputs.tags }}
           push: true
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
           labels: ${{ steps.meta.outputs.labels }}
           annotations: ${{ steps.meta.outputs.annotations }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
