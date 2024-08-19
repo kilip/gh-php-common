@@ -24,6 +24,11 @@ on:
         default: false
         type: boolean
         required: false
+      goss_file:
+        description: goss.yaml file location
+        default: ./docker/goss.yaml
+        type: string
+        required: false
 
 env:
   IMAGE_PREFIX: ghcr.io/${{ github.repository }}
@@ -81,6 +86,19 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
+      - name: Run Goss tests
+        id: dgoss
+        shell: bash
+        if: inputs.goss
+        env:
+          CONTAINER_RUNTIME: docker
+          GOSS_FILE:
+          GOSS_OPTS: --retry-timeout 60s --sleep 2s --color --format documentation
+          GOSS_SLEEP: 2
+          GOSS_FILES_STRATEGY: cp
+          CONTAINER_LOG_OUTPUT: goss_container_log_output
+        run: dgoss run ${{ env.DOCKER_IMAGE }} ${{ steps.vars.outputs.goss_args }}
+
       - name: Build and push container image
         if: github.event_name != 'pull_request'
         uses: docker/build-push-action@v6
@@ -89,6 +107,7 @@ jobs:
           target: ${{ inputs.target }}
           platforms: linux/amd64,linux/arm64
           tags: ${{ steps.vars.outputs.tags }}
+          push: true
           labels: |-
             org.opencontainers.image.created="${{ steps.vars.outputs.build_date }}"
             org.opencontainers.image.description="${{ inputs.description }}"
