@@ -34,6 +34,11 @@ on:
         default: ./frankenphp/goss.yaml
         type: string
         required: false
+      ref_name:
+        description: ref name
+        default: ${{ github.ref_name }}
+        type: string
+        required: false
 
 env:
   IMAGE_PREFIX: ghcr.io/${{ github.repository }}
@@ -51,13 +56,13 @@ jobs:
         shell: bash
         run: |
           date_version=$(date +'%Y%m%d%H%M%S')
-          tag_version="${{ github.ref_name }}-${date_version}"
+          tag_version="${{ inputs.ref_name }}-${date_version}"
           tags="${{ env.IMAGE_PREFIX }}:${tag_version}"
 
-          ref="${{ github.ref_name }}"
+          ref="${{ inputs.ref_name }}"
           if [[ $ref == 2024* ]]; then
-            tag_version="${{ github.ref_name }}"
-            tags="${{ env.IMAGE_PREFIX }}:${{ github.ref_name }},${{env.IMAGE_PREFIX}}:latest"
+            tag_version="${{ inputs.ref_name }}"
+            tags="${{ env.IMAGE_PREFIX }}:${{ inputs.ref_name }},${{env.IMAGE_PREFIX}}:latest"
           fi
 
           echo "tags=${tags}" >> $GITHUB_OUTPUT
