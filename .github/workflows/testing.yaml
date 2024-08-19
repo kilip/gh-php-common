@@ -29,6 +29,16 @@ on:
         default: false
         type: boolean
         required: false
+      postgres:
+        description: Enable postgres database
+        default: false
+        type: boolean
+        required: false
+      database_url:
+        description: Setup database url
+        default: postgresql://crank:crank@localhost/crank
+        type: string
+        required: false
 
 jobs:
   phpunit:
@@ -72,6 +82,19 @@ jobs:
       - name: Update project dependencies
         run: |
           composer install --no-interaction --no-progress --ansi
+
+      - name: Setup postgres
+        if: inputs.postgres
+        run: |
+          sudo systemctl start postgresql
+          sudo -u postgres psql -d template1 -c "CREATE USER app WITH PASSWORD 'app' CREATEDB"
+          createdb -h localhost -p 5432 -U app app_test
+          pg_isready -d app_test -h localhost -p 5432 -U app
+
+      - name: Create postgres database schema
+        env:
+          DATABASE_URL: postgresql://app:app@localhost/app
+        run: ./bin/console doctrine:schema:create --env=test
 
       - name: Runs pre run scripts
         run: ${{ inputs.pre_run }}
