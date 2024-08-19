@@ -95,7 +95,6 @@ jobs:
         env:
           DATABASE_URL: postgresql://app:app@localhost/app?serverVersion=16&charset=utf8
         run: |
-          ./bin/console doctrine:database:create --env=test
           ./bin/console doctrine:schema:create --env=test
 
       - name: Runs pre run scripts
